@@ -3,7 +3,7 @@
 #if USE_LINUX
 
 #include <limits.h>
-#include <futex.h>
+#include <linux/futex.h>
 #include <sys/syscall.h>
 #include <unistd.h>
 
