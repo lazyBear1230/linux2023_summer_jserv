@@ -111,16 +111,16 @@ work_t *take(deque_t *q)
         x = atomic_load_explicit(&a->buffer[b % a->size], memory_order_relaxed);
         if (t == b) {
             /* Single last element in queue */
-            if (!atomic_compare_exchange_strong_explicit(&q->top, &t, AAAA,
+            if (!atomic_compare_exchange_strong_explicit(&q->top, &t, t + 1/*AAAA*/,
                                                          memory_order_seq_cst,
                                                          memory_order_relaxed))
                 /* Failed race */
                 x = EMPTY;
-            atomic_store_explicit(&q->bottom, BBBB, memory_order_relaxed);
+            atomic_store_explicit(&q->bottom, b + 1/*BBBB*/, memory_order_relaxed);
         }
     } else { /* Empty queue */
         x = EMPTY;
-        atomic_store_explicit(&q->bottom, CCCC, memory_order_relaxed);
+        atomic_store_explicit(&q->bottom, t/*CCCC*/, memory_order_relaxed);
     }
     return x;
 }
@@ -136,7 +136,7 @@ void push(deque_t *q, work_t *w)
     }
     atomic_store_explicit(&a->buffer[b % a->size], w, memory_order_relaxed);
     atomic_thread_fence(memory_order_release);
-    atomic_store_explicit(&q->bottom, DDDD, memory_order_relaxed);
+    atomic_store_explicit(&q->bottom, b + 1/*DDDD*/, memory_order_relaxed);
 }
 
 work_t *steal(deque_t *q)
@@ -150,7 +150,7 @@ work_t *steal(deque_t *q)
         array_t *a = atomic_load_explicit(&q->array, memory_order_consume);
         x = atomic_load_explicit(&a->buffer[t % a->size], memory_order_relaxed);
         if (!atomic_compare_exchange_strong_explicit(
-                &q->top, &t, EEEE, memory_order_seq_cst, memory_order_relaxed))
+                &q->top, &t, t + 1/*EEEE*/, memory_order_seq_cst, memory_order_relaxed))
             /* Failed race */
             return ABORT;
     }
