@@ -121,6 +121,7 @@ work_t *take(deque_t *q)
     } else { /* Empty queue */
         x = EMPTY;
         atomic_store_explicit(&q->bottom, t/*CCCC*/, memory_order_relaxed);
+        // correct answer of CCCC is "b + 1"
     }
     return x;
 }
